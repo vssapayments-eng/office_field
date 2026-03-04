@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSCO Office Terminal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #1a1a1a; color: white; }
+        #qrcode { padding: 20px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .container { text-align: center; }
+        h1 { margin-bottom: 10px; font-size: 2.5rem; letter-spacing: 2px; }
+        p { color: #888; margin-bottom: 30px; }
+        #timer-bar { width: 100%; height: 5px; background: #444; margin-top: 20px; border-radius: 5px; overflow: hidden; }
+        #progress { width: 100%; height: 100%; background: #007bff; transition: width 1s linear; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RSCO OFFICE</h1>
+        <p>Scan to Clock In/Out</p>
+        <div id="qrcode"></div>
+        <div id="timer-bar"><div id="progress"></div></div>
+    </div>
+
+    <script>
+        // REPLACE THIS WITH YOUR GOOGLE WEB APP URL
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        const SECRET = "RSCO_SECURE_2026"; 
+        
+        let timeLeft = 30;
+        const qrcode = new QRCode(document.getElementById("qrcode"), {
+            width: 300,
+            height: 300,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        function generateQR() {
+            const ts = Math.floor(Date.now() / 30000); // Unique ID every 30 seconds
+            const token = btoa(SECRET + "|" + ts);
+            const finalUrl = `${GOOGLE_SCRIPT_URL}?token=${token}`;
+            
+            qrcode.clear();
+            qrcode.makeCode(finalUrl);
+            
+            timeLeft = 30;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = (timeLeft / 30) * 100;
+            document.getElementById("progress").style.width = percent + "%";
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateProgress, 1000);
+            } else {
+                generateQR();
+            }
+        }
+
+        generateQR(); // Initial call
+    </script>
+</body>
+</html>
